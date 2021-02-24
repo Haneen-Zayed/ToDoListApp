@@ -17,8 +17,8 @@ class CreateTasksTable extends Migration
             $table->bigIncrements('id');
             $table->text('content');
             $table->integer('user_id');
-            $table->boolean('the_day');
-            $table->boolean('status');
+            $table->integer('the_day')->default(1); //// today = 1 & tomorrow = 0
+            $table->integer('status')->default(1);  //// ongoing = 1 & completed = 0
             $table->timestamps();
         });
     }
