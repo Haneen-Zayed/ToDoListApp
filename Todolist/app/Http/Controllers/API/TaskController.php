@@ -1,55 +1,84 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
-
+use Illuminate\Support\Carbon as Carbon;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Validator;
+use Illuminate\Support\Facades\DB as DB ;
 use App\Http\Resources\Task as TaskResource;
 
 class TaskController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    // show all tasks which are ongoing & in Today list 
+
     public function showTodayTaskOngoing()
     {
         $id= Auth::id();
-        $tasks= Task::where('user_id', $id)->where('the_day', '=', 1)->where('status', '=', 1)->get();
-        return $this->sendResponse(TaskResource::collection($tasks), ' All Today Tasks');
+        $tasks= Task::where('user_id', $id)
+        ->where('the_day', 1)
+        ->where('status',1)->get();
+        if (count($tasks) > 0) {
+
+            return $this->sendResponse(TaskResource::collection($tasks), ' All Today Tasks');
+        }
+        else {
+            return $this->sendErorr('Today Tasks list is empty');
+        }    
         
     }
+
+    // show all tasks which are completed & in Today list
 
     public function showTaskCompleted()
     {
         $id= Auth::id();
-        $tasks= Task::where('user_id', $id)->where('the_day', '=', 1)->where('status', '=', 0)->get();
-        return $this->sendResponse(TaskResource::collection($tasks), ' All Today Tasks');
+        $tasks= Task::where('user_id', $id)
+        ->where('status',0)->get();
+        if (count($tasks) > 0) {
+
+            return $this->sendResponse(TaskResource::collection($tasks), ' All Today completed Tasks');
+        }
+        else {
+            return $this->sendErorr(' you did not complete any Task yet');
+        }
+        
         
     }
 
+    // show all tasks which are in Tomorrow list
 
     public function showTomorrowTask()
     {
         $id= Auth::id();
-        $tasks= Task::where('user_id', $id)->where('the_day', '=', 0)->get();
-        return $this->sendResponse(TaskResource::collection($tasks), ' All Tomorrow Tasks');
+        $tasks= Task::where('user_id', $id)
+        ->where('the_day',0)
+        ->get();
+
+       /*  foreach ($tasks as $task) {
+            if ($task->created_at->lessThan(Carbon::now()->timezone())) {
+            $task->the_day=1;
+            $task->save();
+           } }
+
+           */
+
+        if (count($tasks) > 0) {         
+
+            return $this->sendResponse(TaskResource::collection($tasks), ' All Tomorrow Tasks');
+        }
+        else {
+            return $this->sendErorr('Tomorrow Tasks list is empty');
+        }
+    
         
     }
 
-  
+    // create a new Task in Today list
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function createTodayTask(Request $request)
     {
         $input=$request->all();
@@ -65,15 +94,18 @@ class TaskController extends BaseController
         $user=Auth::user();
         $input['user_id']=$user->id;
         $task=Task::create($input);
-        return $this->sendResponse($task, 'Task added successfully');
+        return $this->sendResponse(new TaskResource($task), 'Task added successfully');
     }
+
+    // create a new Task in Tomorrow list 
 
     public function createTomorrowTask(Request $request)
     {
         $input=$request->all();
-         $validator=Validator::make($input,[
+        $validator=Validator::make($input,[
 
             'content'=>'required'
+            
         ]);
 
          if ($validator->fails()) {
@@ -83,18 +115,18 @@ class TaskController extends BaseController
         $user=Auth::user();
         $input['user_id']=$user->id;
         $input['the_day']=0;
-        $input['status']=0;
         $task=Task::create($input);
-        return $this->sendResponse($task, 'Task added successfully');
+        return $this->sendResponse(new TaskResource($task), 'Task added successfully');
     }
 
     
+    // Edit your task in any list
 
-
-    public function update(Request $request, Task $task)
+    public function update(Request $request,  $id)
     {
+        $task=Task::find($id);
         $input=$request->all();
-         $validator=Validator::make($request->all(),[
+        $validator=Validator::make($request->all(),[
             'content'=>'required'
         ]);
 
@@ -112,51 +144,53 @@ class TaskController extends BaseController
         return $this->sendResponse(new TaskResource($task), 'Task updated successfully');
     }
 
+    // transport Task 
 
-    public function transportTaskToTomorrow(Request $request, Task $task)
+    public function transportTask($id)
     {
-        $input=$request->all();
+        $task=Task::find($id);
     
         if ( $task->user_id != Auth::id()) {
             return $this->sendErorr('You do not have rights');
         }
-
-        if ($validator->fails()) {
-            return $this->sendErorr('Validation error', $validator->errors());
-        }
-
-        $task->the_day= 0;
+        if ($task->the_day == 1 and $task->status == 1 ) {
+            $task->the_day = 0;
+            $task->save();
+         }
+         else{
+            $task->the_day= 1;
+            $task->save();
+         }
+        
         $task->save();
-        return $this->sendResponse(new TaskResource($task), 'Task updated successfully');
+        return $this->sendResponse(new TaskResource($task), ' Task tarnsported successfully');
     }
 
-    public function transportTaskToTomorrow(Request $request, Task $task)
+
+     // make any task completed or ongoing 
+
+    public function makeTaskCompletedOrOngoing($id)
     {
-        $input=$request->all();
+         $task=Task::find($id);
     
         if ( $task->user_id != Auth::id()) {
             return $this->sendErorr('You do not have rights');
         }
-
-        if ($validator->fails()) {
-            return $this->sendErorr('Validation error', $validator->errors());
-        }
-
-        $task->the_day= 1;
+        if ($task->status == 1 and $task->the_day=1 ) {
+            $task->status = 0;
+            $task->save();
+         }
+         else{
+            $task->status= 1;
+            $task->save();
+         }
+        
         $task->save();
-        return $this->sendResponse(new TaskResource($task), 'Task updated successfully');
+        return $this->sendResponse(new TaskResource($task), ' completed Task');
     }
 
+   // delete any task in any list 
 
-
-
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Task  $task
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
         $task=Task::find($id);
@@ -170,5 +204,54 @@ class TaskController extends BaseController
 
         $task->delete();
         return $this->sendResponse(new TaskResource($task), 'Task deleted successfully');
+    } 
+
+     // delete all completed tasks in the end of the day 
+
+    public function deleteCompletedTasks()
+    {
+
+
+
+        $id= Auth::id();
+        $tasks= Task::where('user_id', $id)
+        ->where('status',0);
+        $tasks->delete();
+        return ' All completed Tasks deleted';
+        
+        
     }
+
+    public function date()
+    {
+        $id= Auth::id();
+        $tasks= Task::where('user_id', $id)
+        ->where('the_day', 0)
+        ->get();
+
+        if (count($tasks) > 0) {
+            foreach ($tasks as $task) {
+               if ($task->created_at->toDateString()->lessThan(Carbon::now()->toDateString())) {
+                   $task->the_day=1;
+                   $task->save();
+                   return 'all tasks tarnsported';
+               }
+
+               else{
+                return 'no tasks';
+               }
+
+           }   
+        }
+
+        else{
+            return 'no task in tomorrow';
+        }
+        
+        
+    }
+
+    
 }
+
+
