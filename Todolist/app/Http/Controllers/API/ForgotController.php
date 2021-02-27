@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\API;
-
+use App\Http\Requests\ResetRequest;
 use App\Http\Requests\ForgotRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -11,6 +11,8 @@ use App\Http\Controllers\Controller as Controller;
 use Illuminate\Support\Facades\Mail;
 use SplSubject;
 use App\Mail\MyTestMail;
+use Illuminate\Support\Facades\Hash;
+
 class ForgotController extends Controller
 {
     public function forgot(ForgotRequest $request)
@@ -40,6 +42,39 @@ class ForgotController extends Controller
         return response(['message' => $exception->getMessage()], 400);
      }
 
+    }
+
+   public function reset(ResetRequest $request)
+   {
+
+    $token = $request->input('token');
+
+    if(!$passwordReset = DB::table('password_resets')->where('token' ,$token)->first()){
+
+        return response([
+
+           'message' => 'Tnvalid token'
+        ], status:400);
 
     }
+        //** @var User $user */
+      if (!$user = User::where('email' , $passwordReset->email)->first()){
+
+        return response([
+
+            'message' => 'User doesn\'t exist!'
+        ],status:404);
+
+      }
+
+      $user->password = Hash::make($request->input('password'));
+      $user->save();
+
+      return  response([
+
+        'message' => 'success'
+      ]);
+   }
+
+
 }

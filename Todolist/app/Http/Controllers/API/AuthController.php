@@ -48,6 +48,7 @@ class AuthController extends BaseController
     	else
     	{
     		return $this->sendErorr('Unauthorised',['error', 'Unauthorised']);
+
     	}
     }
 
@@ -58,5 +59,6 @@ class AuthController extends BaseController
         return Auth::User();
 
     }
+
 }
 

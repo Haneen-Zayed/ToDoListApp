@@ -1,7 +1,7 @@
 @component('mail::message')
 
 <br>
-The token is .
+Confirmation code .
 
 <br/>
 
