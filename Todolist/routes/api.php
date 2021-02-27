@@ -14,13 +14,26 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
+
+
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('register', [AuthController::class, 'register'])->name('user.register');
-Route::post('login', [AuthController::class, 'login'])->name('user.login');
+Route::post('register', [AuthController::class, 'register']);
+Route::post('login', [AuthController::class, 'login']);
 
+ // added route user to verify email
+
+
+Route::get('user', [AuthController::class, 'user'])->middleware('auth:api');
+Route::post('forgot', [ForgotController::class,'forgot']);
+
+
+
+
+ // Route task
 
 Route::middleware('auth:api')->group(function(){
 	 Route::resource('tasks', 'API\TaskController');
@@ -30,5 +43,5 @@ Route::middleware('auth:api')->group(function(){
 //	Route::post('notes/edit', 'API\NoteController@update');
 	Route::delete('notes/delete/{id}', 'API\NoteController@destroy');
 
-*/	
+*/
 });

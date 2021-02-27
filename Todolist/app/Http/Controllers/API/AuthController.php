@@ -8,7 +8,7 @@ use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends BaseController
 {
@@ -48,7 +48,15 @@ class AuthController extends BaseController
     	else
     	{
     		return $this->sendErorr('Unauthorised',['error', 'Unauthorised']);
-    	} 
+    	}
+    }
+
+    // added function user to verify email
+    public function user()
+    {
+
+        return Auth::User();
+
     }
 }
 

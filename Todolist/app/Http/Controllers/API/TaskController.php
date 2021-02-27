@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
 
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
-use Validator;
+use Illuminate\Support\Facades\Validator;
+
 use App\Http\Resources\Task as TaskResource;
 
 class TaskController extends BaseController
@@ -22,7 +23,7 @@ class TaskController extends BaseController
         $id= Auth::id();
         $tasks= Task::where('user_id', $id)->where('the_day', '=', 1)->where('status', '=', 1)->get();
         return $this->sendResponse(TaskResource::collection($tasks), ' All Today Tasks');
-        
+
     }
 
     public function showTaskCompleted()
@@ -30,7 +31,7 @@ class TaskController extends BaseController
         $id= Auth::id();
         $tasks= Task::where('user_id', $id)->where('the_day', '=', 1)->where('status', '=', 0)->get();
         return $this->sendResponse(TaskResource::collection($tasks), ' All Today Tasks');
-        
+
     }
 
 
@@ -39,10 +40,10 @@ class TaskController extends BaseController
         $id= Auth::id();
         $tasks= Task::where('user_id', $id)->where('the_day', '=', 0)->get();
         return $this->sendResponse(TaskResource::collection($tasks), ' All Tomorrow Tasks');
-        
+
     }
 
-  
+
 
     /**
      * Store a newly created resource in storage.
@@ -88,7 +89,7 @@ class TaskController extends BaseController
         return $this->sendResponse($task, 'Task added successfully');
     }
 
-    
+
 
 
     public function update(Request $request, Task $task)
@@ -98,7 +99,7 @@ class TaskController extends BaseController
             'content'=>'required'
         ]);
 
-       
+
          if ( $task->user_id != Auth::id()) {
             return $this->sendErorr('You do not have rights');
         }
@@ -113,10 +114,10 @@ class TaskController extends BaseController
     }
 
 
-    public function transportTaskToTomorrow(Request $request, Task $task)
+    public function TaskToTomorrow(Request $request, Task $task)
     {
         $input=$request->all();
-    
+
         if ( $task->user_id != Auth::id()) {
             return $this->sendErorr('You do not have rights');
         }
@@ -133,7 +134,7 @@ class TaskController extends BaseController
     public function transportTaskToTomorrow(Request $request, Task $task)
     {
         $input=$request->all();
-    
+
         if ( $task->user_id != Auth::id()) {
             return $this->sendErorr('You do not have rights');
         }
