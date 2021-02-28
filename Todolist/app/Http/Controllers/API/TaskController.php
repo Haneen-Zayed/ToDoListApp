@@ -1,23 +1,14 @@
 <?php
 
 namespace App\Http\Controllers\API;
-<<<<<<< HEAD
 
-=======
->>>>>>> 1b7086e004117ff4fa93ca8cd140bd79a1b30545
-
-use Illuminate\Support\Carbon as Carbon;
+use Carbon\Carbon as Carbon;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
-<<<<<<< HEAD
-use Illuminate\Support\Facades\Validator;
-
-=======
 use Validator;
 use Illuminate\Support\Facades\DB as DB ;
->>>>>>> 1b7086e004117ff4fa93ca8cd140bd79a1b30545
 use App\Http\Resources\Task as TaskResource;
 
 class TaskController extends BaseController
@@ -27,11 +18,19 @@ class TaskController extends BaseController
     public function showTodayTaskOngoing()
     {
         $id= Auth::id();
-<<<<<<< HEAD
-        $tasks= Task::where('user_id', $id)->where('the_day', '=', 1)->where('status', '=', 1)->get();
-        return $this->sendResponse(TaskResource::collection($tasks), ' All Today Tasks');
+        $tasks= Task::where('user_id', $id)->get();
+        $date1=Carbon::now()->toDateString();
 
-=======
+        if (count((array)$tasks) > 0){
+            foreach ($tasks as $task) {
+            if (Carbon::parse($task->task_dat)->lt($date1)) {
+            $task->the_day=1;
+            $task->save();
+           } }
+        
+        }
+
+        $id= Auth::id();
         $tasks= Task::where('user_id', $id)
         ->where('the_day', 1)
         ->where('status',1)->get();
@@ -43,7 +42,6 @@ class TaskController extends BaseController
             return $this->sendErorr('Today Tasks list is empty');
         }    
         
->>>>>>> 1b7086e004117ff4fa93ca8cd140bd79a1b30545
     }
 
     // show all tasks which are completed & in Today list
@@ -51,11 +49,20 @@ class TaskController extends BaseController
     public function showTaskCompleted()
     {
         $id= Auth::id();
-<<<<<<< HEAD
-        $tasks= Task::where('user_id', $id)->where('the_day', '=', 1)->where('status', '=', 0)->get();
-        return $this->sendResponse(TaskResource::collection($tasks), ' All Today Tasks');
+        $tasks= Task::where('user_id', $id)
+        ->where('status',0)
+        ->get();
+        $date1=Carbon::now()->toDateString();
 
-=======
+        if (count((array)$tasks) > 0){
+            foreach ($tasks as $task) {
+            if (Carbon::parse($task->task_dat)->lt($date1)) {
+            $task->delete();
+           } }
+        
+        }
+
+        $id= Auth::id();
         $tasks= Task::where('user_id', $id)
         ->where('status',0)->get();
         if (count($tasks) > 0) {
@@ -64,36 +71,31 @@ class TaskController extends BaseController
         }
         else {
             return $this->sendErorr(' you did not complete any Task yet');
-        }
-        
-        
->>>>>>> 1b7086e004117ff4fa93ca8cd140bd79a1b30545
+        }              
     }
 
     // show all tasks which are in Tomorrow list
 
     public function showTomorrowTask()
     {
+
         $id= Auth::id();
-<<<<<<< HEAD
-        $tasks= Task::where('user_id', $id)->where('the_day', '=', 0)->get();
-        return $this->sendResponse(TaskResource::collection($tasks), ' All Tomorrow Tasks');
+        $tasks= Task::where('user_id', $id)->get();
+        $date1=Carbon::now()->toDateString();
 
-    }
-
-
-=======
-        $tasks= Task::where('user_id', $id)
-        ->where('the_day',0)
-        ->get();
-
-       /*  foreach ($tasks as $task) {
-            if ($task->created_at->lessThan(Carbon::now()->timezone())) {
+        if (count((array)$tasks) > 0){
+            foreach ($tasks as $task) {
+            if (Carbon::parse($task->task_dat)->lt($date1)) {
             $task->the_day=1;
             $task->save();
            } }
+        
+        }
 
-           */
+        $id= Auth::id();
+        $tasks= Task::where('user_id', $id)
+        ->where('the_day',0)
+        ->get();
 
         if (count($tasks) > 0) {         
 
@@ -102,12 +104,10 @@ class TaskController extends BaseController
         else {
             return $this->sendErorr('Tomorrow Tasks list is empty');
         }
-    
         
     }
 
     // create a new Task in Today list
->>>>>>> 1b7086e004117ff4fa93ca8cd140bd79a1b30545
 
     public function createTodayTask(Request $request)
     {
@@ -123,6 +123,7 @@ class TaskController extends BaseController
 
         $user=Auth::user();
         $input['user_id']=$user->id;
+        $input['task_dat']=Carbon::now()->toDateString();
         $task=Task::create($input);
         return $this->sendResponse(new TaskResource($task), 'Task added successfully');
     }
@@ -145,16 +146,13 @@ class TaskController extends BaseController
         $user=Auth::user();
         $input['user_id']=$user->id;
         $input['the_day']=0;
+        $input['task_dat']=Carbon::now()->toDateString();
         $task=Task::create($input);
         return $this->sendResponse(new TaskResource($task), 'Task added successfully');
     }
 
-<<<<<<< HEAD
-
-=======
     
     // Edit your task in any list
->>>>>>> 1b7086e004117ff4fa93ca8cd140bd79a1b30545
 
     public function update(Request $request,  $id)
     {
@@ -164,8 +162,8 @@ class TaskController extends BaseController
             'content'=>'required'
         ]);
 
-
-         if ( $task->user_id != Auth::id()) {
+       
+     if ( $task->user_id != Auth::id()) {
             return $this->sendErorr('You do not have rights');
         }
 
@@ -180,17 +178,10 @@ class TaskController extends BaseController
 
     // transport Task 
 
-<<<<<<< HEAD
-    public function TaskToTomorrow(Request $request, Task $task)
-    {
-        $input=$request->all();
-
-=======
     public function transportTask($id)
     {
         $task=Task::find($id);
     
->>>>>>> 1b7086e004117ff4fa93ca8cd140bd79a1b30545
         if ( $task->user_id != Auth::id()) {
             return $this->sendErorr('You do not have rights');
         }
@@ -212,13 +203,8 @@ class TaskController extends BaseController
 
     public function makeTaskCompletedOrOngoing($id)
     {
-<<<<<<< HEAD
-        $input=$request->all();
-
-=======
          $task=Task::find($id);
     
->>>>>>> 1b7086e004117ff4fa93ca8cd140bd79a1b30545
         if ( $task->user_id != Auth::id()) {
             return $this->sendErorr('You do not have rights');
         }
@@ -250,54 +236,15 @@ class TaskController extends BaseController
 
         $task->delete();
         return $this->sendResponse(new TaskResource($task), 'Task deleted successfully');
-    } 
-
-     // delete all completed tasks in the end of the day 
-
-    public function deleteCompletedTasks()
-    {
-
-
-
-        $id= Auth::id();
-        $tasks= Task::where('user_id', $id)
-        ->where('status',0);
-        $tasks->delete();
-        return ' All completed Tasks deleted';
-        
-        
-    }
-
-    public function date()
-    {
-        $id= Auth::id();
-        $tasks= Task::where('user_id', $id)
-        ->where('the_day', 0)
-        ->get();
-
-        if (count($tasks) > 0) {
-            foreach ($tasks as $task) {
-               if ($task->created_at->toDateString()->lessThan(Carbon::now()->toDateString())) {
-                   $task->the_day=1;
-                   $task->save();
-                   return 'all tasks tarnsported';
-               }
-
-               else{
-                return 'no tasks';
-               }
-
-           }   
-        }
-
-        else{
-            return 'no task in tomorrow';
-        }
-        
-        
-    }
-
+    }   
     
 }
+
+
+
+   
+
+    
+
 
 

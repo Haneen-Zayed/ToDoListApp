@@ -58,7 +58,13 @@ class AuthController extends BaseController
 
         return Auth::User();
 
-    }
+    } 
+
+    public function logout(Request $request)
+        {
+            Auth::logout(); 
+            return response()->json(['message'=>' Successfully logged out']);
+        }
 
 }
 
