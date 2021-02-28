@@ -114,7 +114,8 @@ class TaskController extends BaseController
         $input=$request->all();
          $validator=Validator::make($input,[
 
-            'content'=>'required'
+            'content'=>'required',
+            
         ]);
 
          if ($validator->fails()) {
@@ -135,7 +136,8 @@ class TaskController extends BaseController
         $input=$request->all();
         $validator=Validator::make($input,[
 
-            'content'=>'required'
+            'content'=>'required',
+
             
         ]);
 
